@@ -1,5 +1,5 @@
 -module(ind).
--export([get_words_from_file/1, index_listing/2, line_numbers/1, main/0]).
+-export([get_words_from_file/1, index_listing/2, line_numbers/1, main/0, main/1]).
 -define(is_alpha(Char), (Char >= $A andalso Char =< $Z) orelse (Char >= $a andalso Char =< $z)).
 -import(index, [get_file_contents/1]).
 -import(lists, [member/2]).
@@ -77,6 +77,12 @@ bind({A, A}) ->
     {A};
 bind({A, B}) ->
     {A, B}.	    
+
+main(Filename) ->
+    Lines = get_file_contents(Filename),
+    FileWordSet = get_words_from_file(Filename),
+    LineNumbers = line_numbers(Lines),
+    [ index_listing(Word, LineNumbers) || Word <- FileWordSet ].
 
 main() ->
     Filename = "dickens-christmas.txt",
