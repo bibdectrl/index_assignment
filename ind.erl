@@ -7,7 +7,7 @@
 create_word_set([]) ->
     [];
 create_word_set([Word|Words]) ->
-    [ Word | create_word_set( [W || W <- Words, W =/= Word] ) ].
+    [ Word | create_word_set( [W || W <- Words, W =/= Word ] ) ].
 
 no_punc(Char) when ?is_alpha(Char) ->
     Char;
@@ -26,14 +26,16 @@ remove_punctuation(Chars) ->
 
 get_words_from_file(Filename) ->
     Contents = get_file_contents(Filename),
-    ConcatContents = lists:concat(Contents),
+    PaddedContents = lists:map(fun(Line) -> Line ++ [" "] end, Contents),
+    ConcatContents = lists:concat(PaddedContents),
     get_words_line(ConcatContents).
 
 get_words_line(Line) ->
     NoPunct = remove_punctuation(Line),
     Downcase = to_lowercase(NoPunct),
-    Tokens = string:tokens(Downcase, " "),
-    create_word_set(Tokens).
+    Tokens = string:tokens(Downcase, " $\n"),
+    WordSet = create_word_set(Tokens),
+    lists:filter(fun(W) -> length(W) > 3 end, WordSet).
     
 line_numbers(Lines) ->
     line_numbers(1, Lines).
@@ -78,15 +80,18 @@ bind({A, A}) ->
 bind({A, B}) ->
     {A, B}.	    
 
+tupsort({WordA, _}, {WordB, _}) ->
+    WordA =< WordB.
+
 main(Filename) ->
     Lines = get_file_contents(Filename),
     FileWordSet = get_words_from_file(Filename),
     LineNumbers = line_numbers(Lines),
-    [ index_listing(Word, LineNumbers) || Word <- FileWordSet ].
+    lists:sort(fun tupsort/2, [ index_listing(Word, LineNumbers) || Word <- FileWordSet ]).
 
 main() ->
     Filename = "dickens-christmas.txt",
     Lines = get_file_contents(Filename),
     FileWordSet = get_words_from_file(Filename),
     LineNumbers = line_numbers(Lines),
-    [ index_listing(Word, LineNumbers) || Word <- FileWordSet ].
+    lists:sort(fun tupsort/2, [ index_listing(Word, LineNumbers) || Word <- FileWordSet ]).
